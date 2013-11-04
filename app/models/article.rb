@@ -71,6 +71,24 @@ class Article < Content
     end
   end
 
+  def merge_with(target_index)
+    target_article = Article.find(target_index)
+    self.body += "\n\n" + target_article.body
+    self.save!
+    
+    comments = Comment.find_all_by_article_id(target_index)
+    comments.each do |comment|
+      comment.article_id = self.id
+      comment.save!
+    end
+    # self.comments << target_article.comments
+    # self.save!
+
+    target_article.destroy
+    return true
+  end
+
+
   def set_permalink
     return if self.state == 'draft'
     self.permalink = self.title.to_permalink if self.permalink.nil? or self.permalink.empty?

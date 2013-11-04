@@ -11,6 +11,18 @@ class Admin::ContentController < Admin::BaseController
     render :inline => "<%= raw auto_complete_result @items, 'name' %>"
   end
 
+  def merge
+    target_index = params[:merge_with]
+    current_article = Article.find(params[:id])
+    if current_article.merge_with(target_index)
+      flash[:notice] = "Merge succeeded."
+      redirect_to :action => :index
+    else
+      flash[:error] = "Merge failed."
+      redirect_to :action => :edit, :id => params[:id]
+    end
+  end
+
   def index
     @search = params[:search] ? params[:search] : {}
     
@@ -28,6 +40,7 @@ class Admin::ContentController < Admin::BaseController
   end
 
   def edit
+    @is_admin = Profile.find(current_user.profile_id).label == "admin"
     @article = Article.find(params[:id])
     unless @article.access_by? current_user
       redirect_to :action => 'index'
